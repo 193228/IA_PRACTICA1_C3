@@ -1,5 +1,6 @@
 import sys
 import PyQt5
+import numpy as np
 from PyQt5 import QtWidgets
 
 from lecturaArchivo import leerArchivo
@@ -21,14 +22,49 @@ class MyApp(PyQt5.QtWidgets.QMainWindow, ventanaPrincipal):
 def acciones(ventana,X,Y):
     ventana.botonNumpy.clicked.connect(lambda: algoritmoSinLibreria(ventana,X,Y))
     ventana.botonTensor.clicked.connect(lambda: algoritmoConLibreria(ventana,X,Y))
+    #ventana.
 
 def algoritmoSinLibreria(ventana,X,Y):
-    datos = ejecutarAlgoritmoSinLibreria([1.1326741],0.000001,0.01,X,Y,30) #peso se le agrega
+    valores = ajusteNativo(ventana)
+    datos = ejecutarAlgoritmoSinLibreria(valores['peso'],valores['eta'],valores['umbral'],X,Y,valores['generacionesMaximas']) #peso se le agrega
     tablaSinLibreria(ventana,datos)
 
 def algoritmoConLibreria(ventana,X,Y):
-    datos = ejecutarAlgoritmoLibreria(X,Y,30,0.01,0.00001)
+    valores = ajusteLibreria(ventana)
+    datos = ejecutarAlgoritmoLibreria(X,Y,valores['generacionesMaximas'],valores['umbral'],valores['eta'])
     tablaLibreria(ventana,datos)
+
+def ajusteNativo(ventana):
+    if ventana.pesoAleatorio.isChecked():
+        peso = np.random.uniform(-2,2)
+    else:
+        peso = float(ventana.pesoNumpy.text())
+
+    if ventana.mejorTazaNativo.isChecked():
+        eta = 0.000001
+    else:
+        eta = float(ventana.aprendizajeNumpy.text())
+
+    diccionario = {
+        "peso": [peso],
+        "eta": eta,
+        "umbral": float(ventana.umbralNumpy.text()),
+        "generacionesMaximas": int(ventana.generacionesNumpy.text())
+    }
+    return diccionario
+
+def ajusteLibreria(ventana):
+    if ventana.mejorTazaLibreria.isChecked():
+        eta = 0.00001
+    else:
+        eta = float(ventana.aprendizajeTensorFlow.text())
+
+    diccionario = {
+        "eta": eta,
+        "umbral": float(ventana.umbralTensorflow.text()),
+        "generacionesMaximas": int(ventana.generacionesTensorflow.text())
+    }
+    return diccionario
 
 def tablaLibreria(ventana,lista):
     ventana.tablaTensorFlow.setRowCount(1)
